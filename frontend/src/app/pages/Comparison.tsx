@@ -15,10 +15,18 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "../components/ui/dialog";
+import { getRecentScans } from "../utils/storage";
 
 export function Comparison() {
-  const [selectedProductA, setSelectedProductA] = useState(mockProducts[1]); // Greek Yogurt
-  const [selectedProductB, setSelectedProductB] = useState(mockProducts[2]); // Protein Bar
+  // Always get the latest scans on mount
+  const recentScans = getRecentScans();
+  
+  // Default to the first two recent scans, or mock products if less than 2
+  const defaultA = recentScans.length > 0 ? recentScans[0] : mockProducts[1];
+  const defaultB = recentScans.length > 1 ? recentScans[1] : mockProducts[2];
+
+  const [selectedProductA, setSelectedProductA] = useState(defaultA);
+  const [selectedProductB, setSelectedProductB] = useState(defaultB);
   const [isDialogAOpen, setIsDialogAOpen] = useState(false);
   const [isDialogBOpen, setIsDialogBOpen] = useState(false);
 
@@ -34,9 +42,9 @@ export function Comparison() {
     position: "A" | "B";
   }) => (
     <div className="grid grid-cols-2 gap-4 max-h-96 overflow-y-auto">
-      {mockProducts
-        .filter(p => p.id !== currentProductId)
-        .map((product) => (
+      {recentScans
+        .filter((p: any) => p.id !== currentProductId)
+        .map((product: any) => (
           <Card
             key={product.id}
             className="cursor-pointer hover:shadow-lg transition-all border-2 border-pink-200 hover:border-pink-400"
@@ -200,7 +208,7 @@ export function Comparison() {
                   </h4>
                   {selectedProductA.alerts.length > 0 ? (
                     <div className="flex flex-wrap gap-2">
-                      {selectedProductA.alerts.map((alert, idx) => (
+                      {selectedProductA.alerts.map((alert: string, idx: number) => (
                         <Badge key={idx} className="bg-gradient-to-r from-red-400 to-pink-400 text-white border-none">
                           {alert}
                         </Badge>
@@ -235,7 +243,7 @@ export function Comparison() {
                 <div className="bg-white p-4 rounded-2xl border-2 border-pink-100">
                   <h4 className="font-semibold text-gray-900 mb-3">Key Ingredients</h4>
                   <div className="space-y-2">
-                    {selectedProductA.ingredients.slice(0, 3).map((ing, idx) => (
+                    {selectedProductA.ingredients.slice(0, 3).map((ing: any, idx: number) => (
                       <div key={idx} className="flex items-center gap-2">
                         <div
                           className={`w-3 h-3 rounded-full ${
@@ -334,7 +342,7 @@ export function Comparison() {
                   </h4>
                   {selectedProductB.alerts.length > 0 ? (
                     <div className="flex flex-wrap gap-2">
-                      {selectedProductB.alerts.map((alert, idx) => (
+                      {selectedProductB.alerts.map((alert: string, idx: number) => (
                         <Badge key={idx} className="bg-gradient-to-r from-red-400 to-pink-400 text-white border-none">
                           {alert}
                         </Badge>
@@ -369,7 +377,7 @@ export function Comparison() {
                 <div className="bg-white p-4 rounded-2xl border-2 border-purple-100">
                   <h4 className="font-semibold text-gray-900 mb-3">Key Ingredients</h4>
                   <div className="space-y-2">
-                    {selectedProductB.ingredients.slice(0, 3).map((ing, idx) => (
+                    {selectedProductB.ingredients.slice(0, 3).map((ing: any, idx: number) => (
                       <div key={idx} className="flex items-center gap-2">
                         <div
                           className={`w-3 h-3 rounded-full ${
