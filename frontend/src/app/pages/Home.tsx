@@ -68,17 +68,13 @@ export function Home() {
                   <p className="text-gray-600 mb-4 leading-relaxed">
                     Instantly analyze any product by scanning its barcode
                   </p>
-                  <Button
-                    className="bg-gradient-to-r from-pink-500 to-pink-600 hover:from-pink-600 hover:to-pink-700 shadow-md rounded-full"
-                    onClick={() => {
-                      const barcode = window.prompt("Enter product barcode to analyze:");
-                      if (barcode && barcode.trim()) {
-                        navigate(`/product/${encodeURIComponent(barcode.trim())}`);
-                      }
-                    }}
-                  >
-                    Start Scanning
-                  </Button>
+                  <Link to="/scan">
+                    <Button
+                      className="bg-gradient-to-r from-pink-500 to-pink-600 hover:from-pink-600 hover:to-pink-700 shadow-md rounded-full"
+                    >
+                      Start Scanning
+                    </Button>
+                  </Link>
                 </div>
               </div>
             </CardContent>
@@ -105,7 +101,7 @@ export function Home() {
                   <p className="text-gray-600 mb-4 leading-relaxed">
                     Take or upload a photo of the ingredient label
                   </p>
-                  <Link to="/profile">
+                  <Link to="/scan">
                     <Button className="bg-gradient-to-r from-purple-500 to-purple-600 hover:from-purple-600 hover:to-purple-700 shadow-md rounded-full">
                       Upload Photo
                     </Button>

@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { useParams, Link } from "react-router";
+import { useParams, Link, useLocation } from "react-router";
 import { Navigation } from "../components/Navigation";
 import { BlossomDecoration } from "../components/BlossomDecoration";
 import { HealthScoreGauge } from "../components/HealthScoreGauge";
@@ -14,13 +14,16 @@ import type { ProductAnalysisResponse, IngredientRisk } from "../api/types";
 
 export function ProductAnalysis() {
   const { id } = useParams();
+  const location = useLocation();
 
-  const [analysis, setAnalysis] = useState<ProductAnalysisResponse | null>(null);
-  const [loading, setLoading] = useState(true);
+  const passedAnalysisRaw = location.state?.analysisRaw as ProductAnalysisResponse | undefined;
+
+  const [analysis, setAnalysis] = useState<ProductAnalysisResponse | null>(passedAnalysisRaw || null);
+  const [loading, setLoading] = useState(!passedAnalysisRaw);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    if (!id) return;
+    if (!id || passedAnalysisRaw) return;
 
     const run = async () => {
       try {
@@ -41,7 +44,7 @@ export function ProductAnalysis() {
     };
 
     void run();
-  }, [id]);
+  }, [id, passedAnalysisRaw]);
 
   const fallbackProduct = analysis ? {
     id: analysis.barcode,

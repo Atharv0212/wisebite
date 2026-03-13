@@ -3,6 +3,7 @@ import { Home } from "./pages/Home";
 import { ProductAnalysis } from "./pages/ProductAnalysis";
 import { Comparison } from "./pages/Comparison";
 import { Profile } from "./pages/Profile";
+import { Scanner } from "./pages/Scanner";
 
 export const router = createBrowserRouter([
   {
@@ -20,5 +21,9 @@ export const router = createBrowserRouter([
   {
     path: "/profile",
     Component: Profile,
+  },
+  {
+    path: "/scan",
+    Component: Scanner,
   },
 ]);

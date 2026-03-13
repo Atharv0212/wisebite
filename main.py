@@ -280,6 +280,62 @@ async def analyze_label_image(
         print(f"ERROR: {e}")
         raise HTTPException(status_code=500, detail="Failed to process image label.")
 
+class BarcodeExtractionResponse(BaseModel):
+    barcode: str
+
+@app.post("/extract-barcode", response_model=BarcodeExtractionResponse)
+async def extract_barcode_from_image(
+    image: UploadFile = File(...)
+):
+    """
+    Reads an image of a barcode, extracts the numeric value,
+    and returns it using Gemini 2.5 Flash.
+    """
+    image_bytes = await image.read()
+    
+    image_part = {
+        "mime_type": image.content_type or "image/jpeg",
+        "data": image_bytes
+    }
+
+    prompt_text = (
+        "Analyze this image and extract the numerical barcode value. "
+        "Return ONLY the numbers of the barcode. "
+        "Do not return any surrounding text, markdown formatting, spaces, or words. "
+        "If no clear barcode can be found in the image, return exactly: NOT_FOUND"
+    )
+
+    model = genai.GenerativeModel(
+        model_name="gemini-2.5-flash",
+    )
+
+    try:
+        response = await model.generate_content_async([prompt_text, image_part])
+        text = response.text.strip()
+        
+        if not text or "NOT_FOUND" in text:
+             raise HTTPException(status_code=400, detail="Could not detect a barcode in the image.")
+        
+        # Strip any formatting just in case
+        if "```" in text:
+            text = text.split("```")[1]
+            if text.startswith("json"): text = text[4:]
+        text = text.strip("`").strip()
+
+        # Isolate just the numbers
+        import re
+        numbers = re.sub(r'[^0-9]', '', text)
+        
+        if not numbers:
+             raise HTTPException(status_code=400, detail="Could not detect a numeric barcode in the image.")
+
+        return BarcodeExtractionResponse(barcode=numbers)
+
+    except HTTPException:
+         raise
+    except Exception as e:
+        print(f"ERROR: {e}")
+        raise HTTPException(status_code=500, detail="Failed to process barcode image.")
 
 @app.post("/analyze", response_model=ProductAnalysisResponse)
 async def analyze_product(request: ProductRequest) -> ProductAnalysisResponse:

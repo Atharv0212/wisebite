@@ -36,11 +36,11 @@ export async function analyzeImage(
   profile: UserProfilePayload
 ): Promise<ProductAnalysisResponse> {
   const formData = new FormData();
-  formData.append("file", file);
+  formData.append("label_image", file);
   profile.allergies.forEach((a) => formData.append("allergies", a));
   profile.diseases.forEach((d) => formData.append("diseases", d));
 
-  const res = await fetch(`${API_BASE}/analyze-image`, {
+  const res = await fetch(`${API_BASE}/analyze-label`, {
     method: "POST",
     body: formData,
   });
@@ -51,5 +51,23 @@ export async function analyzeImage(
   }
 
   return (await res.json()) as ProductAnalysisResponse;
+}
+
+export async function extractBarcode(file: File): Promise<string> {
+  const formData = new FormData();
+  formData.append("image", file);
+
+  const res = await fetch(`${API_BASE}/extract-barcode`, {
+    method: "POST",
+    body: formData,
+  });
+
+  if (!res.ok) {
+    const text = await res.text();
+    throw new Error(text || `Extract barcode request failed with ${res.status}`);
+  }
+
+  const data = await res.json();
+  return data.barcode;
 }
 
