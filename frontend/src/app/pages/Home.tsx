@@ -1,3 +1,4 @@
+import { useEffect, useState } from "react";
 import { Link, useNavigate } from "react-router";
 import { Navigation } from "../components/Navigation";
 import { BlossomDecoration } from "../components/BlossomDecoration";
@@ -6,11 +7,16 @@ import { Card, CardContent, CardHeader, CardTitle } from "../components/ui/card"
 import { Button } from "../components/ui/button";
 import { Progress } from "../components/ui/progress";
 import { Badge } from "../components/ui/badge";
-import { mockProducts, healthProfile } from "../data/mockData";
+import { healthProfile } from "../data/mockData";
+import { getRecentScans } from "../utils/storage";
 
 export function Home() {
   const navigate = useNavigate();
-  const recentScans = mockProducts.slice(0, 4);
+  const [recentScans, setRecentScans] = useState<any[]>([]);
+
+  useEffect(() => {
+    setRecentScans(getRecentScans());
+  }, []);
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-pink-50 via-purple-50 to-white relative overflow-hidden">

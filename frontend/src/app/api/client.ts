@@ -25,7 +25,14 @@ export async function analyzeProduct(
 
   if (!res.ok) {
     const text = await res.text();
-    throw new Error(text || `Analyze request failed with ${res.status}`);
+    try {
+      const parsed = JSON.parse(text);
+      // Ensure we extract the specific detail property sent by FastAPI
+      throw new Error(parsed.detail || `Analyze request failed with ${res.status}`);
+    } catch (e: any) {
+      if (e.message) throw e;
+      throw new Error(text || `Analyze request failed with ${res.status}`);
+    }
   }
 
   return (await res.json()) as ProductAnalysisResponse;
@@ -47,7 +54,13 @@ export async function analyzeImage(
 
   if (!res.ok) {
     const text = await res.text();
-    throw new Error(text || `Analyze image request failed with ${res.status}`);
+    try {
+      const parsed = JSON.parse(text);
+      throw new Error(parsed.detail || `Analyze image request failed with ${res.status}`);
+    } catch (e: any) {
+      if (e.message) throw e;
+      throw new Error(text || `Analyze image request failed with ${res.status}`);
+    }
   }
 
   return (await res.json()) as ProductAnalysisResponse;
@@ -64,7 +77,13 @@ export async function extractBarcode(file: File): Promise<string> {
 
   if (!res.ok) {
     const text = await res.text();
-    throw new Error(text || `Extract barcode request failed with ${res.status}`);
+    try {
+      const parsed = JSON.parse(text);
+      throw new Error(parsed.detail || `Extract barcode request failed with ${res.status}`);
+    } catch (e: any) {
+      if (e.message) throw e;
+      throw new Error(text || `Extract barcode request failed with ${res.status}`);
+    }
   }
 
   const data = await res.json();

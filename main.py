@@ -15,7 +15,7 @@ import google.generativeai as genai
 from prompts import get_master_system_prompt, build_off_user_instruction
 
 # --- INITIALIZATION ---
-load_dotenv()
+load_dotenv(override=True)
 
 GEMINI_API_KEY = os.getenv("GEMINI_API_KEY")
 if not GEMINI_API_KEY:
@@ -193,6 +193,9 @@ async def analyze_with_gemini(
 
     except Exception as e:
         print(f"ERROR: {e}")
+        err_str = str(e).lower()
+        if "429" in err_str or "quota" in err_str or "exhausted" in err_str:
+             raise HTTPException(status_code=429, detail="Gemini API rate limit exceeded. Please wait 1 minute and try again.")
         raise HTTPException(status_code=500, detail=str(e))
 
 
@@ -278,6 +281,9 @@ async def analyze_label_image(
 
     except Exception as e:
         print(f"ERROR: {e}")
+        err_str = str(e).lower()
+        if "429" in err_str or "quota" in err_str or "exhausted" in err_str:
+             raise HTTPException(status_code=429, detail="Gemini API rate limit exceeded. Please wait 1 minute and try again.")
         raise HTTPException(status_code=500, detail="Failed to process image label.")
 
 class BarcodeExtractionResponse(BaseModel):
@@ -335,6 +341,9 @@ async def extract_barcode_from_image(
          raise
     except Exception as e:
         print(f"ERROR: {e}")
+        err_str = str(e).lower()
+        if "429" in err_str or "quota" in err_str or "exhausted" in err_str:
+             raise HTTPException(status_code=429, detail="Gemini API rate limit exceeded. Please wait 1 minute and try again.")
         raise HTTPException(status_code=500, detail="Failed to process barcode image.")
 
 @app.post("/analyze", response_model=ProductAnalysisResponse)

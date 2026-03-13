@@ -11,6 +11,7 @@ import { Alert, AlertDescription, AlertTitle } from "../components/ui/alert";
 import { mockProducts } from "../data/mockData";
 import { analyzeProduct } from "../api/client";
 import type { ProductAnalysisResponse, IngredientRisk } from "../api/types";
+import { saveRecentScan } from "../utils/storage";
 
 export function ProductAnalysis() {
   const { id } = useParams();
@@ -76,6 +77,12 @@ export function ProductAnalysis() {
 
   const product = mockProducts.find((p) => p.id === id) || fallbackProduct;
 
+  useEffect(() => {
+    if (product && !loading) {
+      saveRecentScan(product);
+    }
+  }, [product, loading]);
+
   if (loading) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-pink-50 via-purple-50 to-white">
@@ -89,13 +96,41 @@ export function ProductAnalysis() {
     );
   }
 
+  if (error) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-pink-50 via-purple-50 to-white">
+        <BlossomDecoration />
+        <Navigation />
+        <div className="max-w-7xl mx-auto px-4 py-8 flex flex-col items-center justify-center mt-20">
+          <AlertTriangle className="w-16 h-16 text-pink-500 mb-4" />
+          <h2 className="text-2xl font-bold text-gray-800 mb-2">Analysis Failed</h2>
+          <p className="text-gray-600 mb-6 text-center max-w-md">{error}</p>
+          <Link to="/scan">
+            <Button className="bg-gradient-to-r from-pink-500 to-purple-500 hover:from-pink-600 hover:to-purple-600">
+              <ArrowLeft className="w-4 h-4 mr-2" />
+              Try Scanning Again
+            </Button>
+          </Link>
+        </div>
+      </div>
+    );
+  }
+
   if (!product) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-pink-50 via-purple-50 to-white">
         <BlossomDecoration />
         <Navigation />
-        <div className="max-w-7xl mx-auto px-4 py-8">
-          <p>Product not found</p>
+        <div className="max-w-7xl mx-auto px-4 py-8 flex flex-col items-center justify-center mt-20">
+          <Package className="w-16 h-16 text-gray-400 mb-4" />
+          <h2 className="text-2xl font-bold text-gray-800 mb-2">Product Not Found</h2>
+          <p className="text-gray-600 mb-6 text-center max-w-md">We couldn't find this product in our database.</p>
+          <Link to="/scan">
+            <Button variant="outline" className="border-pink-300 text-pink-600 hover:bg-pink-50">
+              <ArrowLeft className="w-4 h-4 mr-2" />
+              Try Scanning Again
+            </Button>
+          </Link>
         </div>
       </div>
     );
