@@ -14,10 +14,9 @@ import type { ProductAnalysisResponse, IngredientRisk } from "../api/types";
 
 export function ProductAnalysis() {
   const { id } = useParams();
-  const product = mockProducts.find((p) => p.id === id);
 
   const [analysis, setAnalysis] = useState<ProductAnalysisResponse | null>(null);
-  const [loading, setLoading] = useState(false);
+  const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
@@ -43,6 +42,49 @@ export function ProductAnalysis() {
 
     void run();
   }, [id]);
+
+  const fallbackProduct = analysis ? {
+    id: analysis.barcode,
+    name: analysis.product_name || "Unknown Product",
+    brand: "Scanned Product",
+    image: "https://images.unsplash.com/photo-1606859191214-25806e8e2423?auto=format&fit=crop&w=800&q=80",
+    healthScore: analysis.ingredient_risks.some(r => r.hazard_level === "hazard") ? 30 : analysis.ingredient_risks.some(r => r.hazard_level === "caution") ? 65 : 90,
+    scanDate: new Date().toISOString(),
+    alerts: analysis.warnings || [],
+    packagingScore: 70,
+    recallStatus: null,
+    ingredients: analysis.ingredients.map(ing => {
+      const risk = analysis.ingredient_risks.find(r => r.ingredient.toLowerCase() === ing.toLowerCase());
+      if (risk) {
+        return {
+          name: ing,
+          simplified: risk.explanation,
+          status: risk.hazard_level === "hazard" ? "danger" : risk.hazard_level === "caution" ? "warning" : "safe",
+          reason: risk.related_allergies.length > 0 || risk.related_diseases.length > 0 ? "Conflicts with health profile" : undefined
+        };
+      }
+      return {
+        name: ing,
+        simplified: "Standard ingredient",
+        status: "safe"
+      };
+    })
+  } : null;
+
+  const product = mockProducts.find((p) => p.id === id) || fallbackProduct;
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-pink-50 via-purple-50 to-white">
+        <BlossomDecoration />
+        <Navigation />
+        <div className="flex flex-col items-center justify-center min-h-[60vh]">
+          <div className="animate-spin text-5xl mb-4">🌸</div>
+          <p className="text-xl text-pink-600 font-medium tracking-wide">Analyzing ingredients...</p>
+        </div>
+      </div>
+    );
+  }
 
   if (!product) {
     return (
