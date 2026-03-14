@@ -55,6 +55,67 @@ export const saveUserProfile = (profile: UserProfile): void => {
   localStorage.setItem('wisebite_profile', JSON.stringify(profile));
 };
 
+// --- Recent Scans History ---
+export interface RecentScan {
+  id: string;
+  product_name: string;
+  category: string;
+  summary: string;
+  healthScore: number;
+  hazardCount: number;
+  cautionCount: number;
+  safeCount: number;
+  warningCount: number;
+  scanDate: string;
+  barcode: string;
+  analysisResult: ProductAnalysisResponse;
+}
+
+const RECENT_SCANS_KEY = 'wisebite_recent_scans';
+const MAX_RECENT_SCANS = 20;
+
+export const saveRecentScan = (result: ProductAnalysisResponse): void => {
+  const scans = getRecentScans();
+
+  let score = 100;
+  result.ingredient_risks.forEach(r => {
+    if (r.hazard_level === 'hazard') score -= 20;
+    else if (r.hazard_level === 'caution') score -= 10;
+  });
+  score = Math.max(0, score);
+
+  const scan: RecentScan = {
+    id: `${Date.now()}-${Math.random().toString(36).substring(2, 8)}`,
+    product_name: result.product_name,
+    category: result.category,
+    summary: result.summary,
+    healthScore: score,
+    hazardCount: result.ingredient_risks.filter(r => r.hazard_level === 'hazard').length,
+    cautionCount: result.ingredient_risks.filter(r => r.hazard_level === 'caution').length,
+    safeCount: result.ingredient_risks.filter(r => r.hazard_level === 'safe').length,
+    warningCount: result.warnings.length,
+    scanDate: new Date().toISOString(),
+    barcode: result.barcode || 'IMAGE_SCAN',
+    analysisResult: result,
+  };
+
+  scans.unshift(scan);
+  if (scans.length > MAX_RECENT_SCANS) scans.pop();
+  localStorage.setItem(RECENT_SCANS_KEY, JSON.stringify(scans));
+};
+
+export const getRecentScans = (): RecentScan[] => {
+  const str = localStorage.getItem(RECENT_SCANS_KEY);
+  if (str) {
+    try { return JSON.parse(str); } catch { return []; }
+  }
+  return [];
+};
+
+export const clearRecentScans = (): void => {
+  localStorage.removeItem(RECENT_SCANS_KEY);
+};
+
 // 1. Analyze Label via Image Upload
 export const analyzeLabelImage = async (imageFile: File, userProfile?: UserProfile): Promise<ProductAnalysisResponse> => {
   const profile = userProfile || getSavedProfile();

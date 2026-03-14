@@ -4,7 +4,7 @@ import { Home as HomeIcon, GitCompare, User, Menu, Settings, ScanLine, History, 
 import { Card, CardContent } from "../components/ui/card";
 import { Button } from "../components/ui/button";
 import { useState, useRef } from "react";
-import { analyzeLabelImage, extractBarcodeFromImage, analyzeProduct, ProductAnalysisResponse, getUserProfile } from "../utils/api";
+import { analyzeLabelImage, extractBarcodeFromImage, analyzeProduct, ProductAnalysisResponse, getUserProfile, saveRecentScan } from "../utils/api";
 
 export function Scan() {
   const [sidebarOpen, setSidebarOpen] = useState(true);
@@ -46,6 +46,7 @@ export function Scan() {
         setAnalysisStep(`✅ Barcode found: ${barcodeResult}. Looking up product database...`);
         try {
           const result: ProductAnalysisResponse = await analyzeProduct(barcodeResult, profile);
+          saveRecentScan(result);
           navigate(`/product/${barcodeResult}`, { state: { analysisResult: result } });
           return;
         } catch {
@@ -57,6 +58,7 @@ export function Scan() {
       // STEP 2b/3: No barcode (or barcode product not found) — analyze the image directly
       setAnalysisStep("🧪 Step 2/3: Analyzing ingredient list from image...");
       const result: ProductAnalysisResponse = await analyzeLabelImage(selectedFile, profile);
+      saveRecentScan(result);
       navigate(`/product/${result.barcode || 'IMAGE_SCAN'}`, { state: { analysisResult: result } });
 
     } catch (error) {
